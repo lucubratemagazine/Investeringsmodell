@@ -476,30 +476,37 @@
     // -------------------------
     // OLJEPRIS-API (enkel versjon – én kilde)
     // -------------------------
-    async function hentOljepris() {
-      try {
-        const response = await fetch("https://api.api-ninjas.com/v1/commodities?name=brent", {
-          headers: { "X-Api-Key": lkAe5Lb5vUhsKaESuoM43JUR34PcVnRk4qWsdtKg } // legg inn nøkkel
-        });
+       async function hentOljepris() {
+  try {
+    const response = await fetch("https://api.api-ninjas.com/v1/commodities?name=brent", {
+      headers: { "X-Api-Key": "DIN_API_NOKKEL_HER" } // ekte nøkkel her
+    });
 
-        if (!response.ok) throw new Error("Feil ved henting av oljepris");
-
-        const data = await response.json();
-        const oljepris = data[0].price;
-        state.oilPrice = oljepris;
-
-        document.getElementById("oljepris").innerText =
-          oljepris.toFixed(2) + " USD (API)";
-        document.getElementById("sistOppdatert").innerText =
-          "Sist oppdatert: " + new Date().toLocaleTimeString();
-
-        document.getElementById("oilPriceInput").value = oljepris.toFixed(2);
-        render();
-      } catch (e) {
-        console.error(e);
-        document.getElementById("oljepris").innerText = "Kunne ikke hente pris";
-      }
+    if (!response.ok) {
+      document.getElementById("oljepris").innerText =
+        "Feil: " + response.status + " " + response.statusText;
+      throw new Error("Feil ved henting av oljepris: " + response.status);
     }
+
+    const data = await response.json();
+    const oljepris = data[0].price;
+    state.oilPrice = oljepris;
+
+    document.getElementById("oljepris").innerText =
+      oljepris.toFixed(2) + " USD (API)";
+    document.getElementById("sistOppdatert").innerText =
+      "Sist oppdatert: " + new Date().toLocaleTimeString();
+
+    document.getElementById("oilPriceInput").value = oljepris.toFixed(2);
+    render();
+  } catch (e) {
+    console.error(e);
+    if (!document.getElementById("oljepris").innerText.startsWith("Feil:")) {
+      document.getElementById("oljepris").innerText = "Kunne ikke hente pris";
+    }
+  }
+}
+
 
     // -------------------------
     // INIT
