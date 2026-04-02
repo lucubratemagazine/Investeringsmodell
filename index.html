@@ -592,15 +592,10 @@ async function hentOljepris() {
         const data = await response.json();
         const oljepris = data[0].price;
 
+        // Oppdater visning
         document.getElementById("oljepris").innerText = oljepris.toFixed(2) + " USD";
-        localStorage.setItem("oljepris", oljepris);
-
-        const tid = new Date().toLocaleTimeString();
-        document.getElementById("sistOppdatert").innerText = "Sist oppdatert: " + tid;
-
-        if (typeof oppdaterRegler === "function") {
-            oppdaterRegler(oljepris);
-        }
+        document.getElementById("sistOppdatert").innerText =
+            "Sist oppdatert: " + new Date().toLocaleTimeString();
 
     } catch (error) {
         console.error(error);
@@ -611,9 +606,8 @@ async function hentOljepris() {
 // 🔹 Kjør oljepris-henting når appen åpner
 window.onload = function() {
     hentOljepris();
+    render();   // ← viktig: render() må ligge her
 };
-
-render();
   </script>
 </body>
 </html>
