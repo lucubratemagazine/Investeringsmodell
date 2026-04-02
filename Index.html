@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <title>Investeringsmodell KS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+    header {
+      padding: 12px 16px;
+      background: #020617;
+      border-bottom: 1px solid #1f2937;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      font-size: 18px;
+      margin: 0;
+    }
+    header small {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+    main {
+      padding: 12px 16px 64px;
+    }
+    .card {
+      background: #020617;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      border: 1px solid #1f2937;
+    }
+    .card h2 {
+      font-size: 15px;
+      margin: 0 0 6px;
+    }
+    .label {
+      font-size: 11px;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .value {
+      font-size: 20px;
+      font-weight: 600;
+    }
+    .sub {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+    .risk-circle {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      margin-right: 12px;
+    }
+    .risk-green { background: #14532d; color: #bbf7d0; }
+    .risk-yellow { background: #854d0e; color: #fef9c3; }
+    .risk-red { background: #7f1d1d; color: #fecaca; }
+    .risk-extreme { background: #450a0a; color: #fecaca; }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .col {
+      flex: 1;
+    }
+
+    .sector-bar {
+      height: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #020617;
+      border: 1px solid #1f2937;
+      margin-top: 6px;
+    }
+    .sector-segment {
+      height: 100%;
+      float: left;
+    }
+    .seg-global { background: #38bdf8; }
+    .seg-tech { background: #a855f7; }
+    .seg-energy { background: #f97316; }
+    .seg-cash { background: #22c55e; }
+
+    .tabs {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 52px;
+      background: #020617;
+      border-top: 1px solid #1f2937;
+      display: flex;
+    }
+    .tab {
+      flex: 1;
+      text-align: center;
+      font-size: 11px;
+      color: #9ca3af;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .tab.active {
+      color: #e5e7eb;
+      background: #020617;
+    }
+
+    input, button, select {
+      font-family: inherit;
+      font-size: 14px;
+    }
+    input {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #e5e7eb;
+      box-sizing: border-box;
+      margin-top: 4px;
+    }
+    button {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #4b5563;
+      background: #111827;
+      color: #e5e7eb;
+      cursor: pointer;
+    }
+    button.primary {
+      background: #2563eb;
+      border-color: #2563eb;
+    }
+    button.small {
+      font-size: 12px;
+      padding: 4px 8px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid #4b5563;
+      color: #9ca3af;
+    }
+    .pill-green { border-color: #16a34a; color: #bbf7d0; }
+    .pill-yellow { border-color: #eab308; color: #fef9c3; }
+    .pill-red { border-color: #ef4444; color: #fecaca; }
+
+    .list-item {
+      padding: 8px 0;
+      border-bottom: 1px solid #111827;
+    }
+    .list-item:last-child {
+      border-bottom: none;
+    }
+    .list-title {
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+    .list-sub {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Investeringsmodell</h1>
+      <small>Første versjon – KS</small>
+    </div>
+    <div>
+      <span class="pill" id="dataStatus">Data: OK</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- HOVEDSKJERM -->
+    <section id="screen-home">
+      <div class="card">
+        <div class="row">
+          <div class="col">
+            <div class="label">Oljepris</div>
+            <div class="value" id="oilPriceDisplay">100</div>
+            <div class="sub" id="oilZoneDisplay">Sone O4 – sterk, men ikke ekstrem</div>
+          </div>
+          <div class="col">
+            <div class="label">Porteføljeverdi</div>
+            <div class="value" id="portfolioValueDisplay">250 000</div>
+            <div class="sub" id="portfolioChangeDisplay">+2,5 % siste 30 dager</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row">
+          <div class="risk-circle risk-yellow" id="riskCircle">
+            <span id="riskLabel">GUL</span>
+          </div>
+          <div class="col">
+            <div class="label">Risikonivå</div>
+            <div class="sub" id="riskText">
+              Oljepris 100 og energiandel litt høy – vurder å trimme 25 % energi.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Sektorfordeling</h2>
+        <div class="sub" id="sectorText">
+          Global 60 % · Teknologi 20 % · Energi 15 % · Kontanter 5 %
+        </div>
+        <div class="sector-bar">
+          <div class="sector-segment seg-global" id="segGlobal" style="width:60%"></div>
+          <div class="sector-segment seg-tech" id="segTech" style="width:20%"></div>
+          <div class="sector-segment seg-energy" id="segEnergy" style="width:15%"></div>
+          <div class="sector-segment seg-cash" id="segCash" style="width:5%"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Dagens hovedanbefaling</h2>
+        <div class="sub" id="mainRecommendation">
+          Selg 25 % av energiaksjer for gevinstsikring. Ikke øk energi før oljepris faller eller normaliseres.
+        </div>
+      </div>
+    </section>
+
+    <!-- OPPDATER DATA -->
+    <section id="screen-update" style="display:none">
+      <div class="card">
+        <h2>Oljepris</h2>
+        <div class="sub">Du kan hente automatisk senere – nå bruker vi manuell input.</div>
+        <label class="label">Dagens oljepris (USD)</label>
+        <input type="number" id="oilPriceInput" value="100" />
+        <div style="margin-top:8px;">
+          <button class="primary small" onclick="updateOilPrice()">Oppdater oljepris</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Verdipapirverdier (forenklet)</h2>
+        <div class="sub">Første versjon – én samlet porteføljeverdi.</div>
+        <label class="label">Total porteføljeverdi (NOK)</label>
+        <input type="number" id="portfolioValueInput" value="250000" />
+        <div style="margin-top:8px;">
+          <button class="primary small" onclick="updatePortfolioValue()">Oppdater portefølje</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Kontanter</h2>
+        <label class="label">Kontantbeholdning (NOK)</label>
+        <input type="number" id="cashInput" value="12500" />
+        <div style="margin-top:8px;">
+          <button class="small" onclick="updateCash()">Oppdater kontanter</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VARSLER -->
+    <section id="screen-alerts" style="display:none">
+      <div class="card">
+        <h2>Aktive varsler</h2>
+        <div id="alertsList">
+          <!-- Fylles av JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- PORTEFØLJE -->
+    <section id="screen-portfolio" style="display:none">
+      <div class="card">
+        <h2>Portefølje (forenklet)</h2>
+        <div class="list-item">
+          <div class="list-title">Global 125</div>
+          <div class="list-sub">Dummy-data – kan utvides til ekte verdier og 7/30-dagers endring.</div>
+        </div>
+        <div class="list-item">
+          <div class="list-title">Global indeks</div>
+          <div class="list-sub">Første versjon – struktur på plass, logikk kan fylles på.</div>
+        </div>
+        <div class="list-item">
+          <div class="list-title">Teknologi</div>
+          <div class="list-sub">Nvidia, ASML, Microsoft, SMCI – kan legges inn senere.</div>
+        </div>
+        <div class="list-item">
+          <div class="list-title">Energi</div>
+          <div class="list-sub">Aker BP, Equinor, Yara, Frontline – kobles til oljeprisregler.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STRATEGI -->
+    <section id="screen-strategy" style="display:none">
+      <div class="card">
+        <h2>Regler – oversikt</h2>
+        <div class="list-item">
+          <div class="list-title">Oljepris-soner (O1–O8)</div>
+          <div class="list-sub">
+            O1 &lt;70 · O2 70–80 · O3 80–90 · O4 90–100 · O5 100–110 · O6 110–120 · O7 120–130 · O8 &gt;130
+          </div>
+        </div>
+        <div class="list-item">
+          <div class="list-title">Gevinstsikring</div>
+          <div class="list-sub">
+            7–8 % siste 30 dager → selg 25 %. Over 10 % → selg 50 %. Over 20 % → selg 75 %.
+          </div>
+        </div>
+        <div class="list-item">
+          <div class="list-title">Oljepris +10 / –10</div>
+          <div class="list-sub">
+            +10 fra forrige nivå → vurder å redusere energi. –10 fra ekstremt nivå → ikke kjøp energi med én gang.
+          </div>
+        </div>
+        <div class="list-item">
+          <div class="list-title">Sektorbalanse</div>
+          <div class="list-sub">
+            Mål: Global 60 %, Teknologi 20 %, Energi 15 %, Kontanter 5 %. Avvik brukes til rebalansering.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabs">
+    <div class="tab active" onclick="showScreen('home')">
+      <div>🏠</div>
+      <div>Hjem</div>
+    </div>
+    <div class="tab" onclick="showScreen('update')">
+      <div>🔄</div>
+      <div>Oppdater</div>
+    </div>
+    <div class="tab" onclick="showScreen('alerts')">
+      <div>🔔</div>
+      <div>Varsler</div>
+    </div>
+    <div class="tab" onclick="showScreen('portfolio')">
+      <div>📊</div>
+      <div>Portefølje</div>
+    </div>
+    <div class="tab" onclick="showScreen('strategy')">
+      <div>⚙️</div>
+      <div>Strategi</div>
+    </div>
+  </nav>
+
+  <script>
+    // Enkel "modell" i minnet – første versjon
+    const state = {
+      oilPrice: 100,
+      prevOilPrice: 90,
+      portfolioValue: 250000,
+      cash: 12500,
+      sectors: {
+        global: 60,
+        tech: 20,
+        energy: 15,
+        cash: 5
+      }
+    };
+
+    function showScreen(name) {
+      const screens = ["home", "update", "alerts", "portfolio", "strategy"];
+      screens.forEach(s => {
+        document.getElementById("screen-" + s).style.display = (s === name) ? "block" : "none";
+      });
+      const tabs = document.querySelectorAll(".tab");
+      tabs.forEach((tab, idx) => {
+        tab.classList.remove("active");
+      });
+      if (name === "home") tabs[0].classList.add("active");
+      if (name === "update") tabs[1].classList.add("active");
+      if (name === "alerts") tabs[2].classList.add("active");
+      if (name === "portfolio") tabs[3].classList.add("active");
+      if (name === "strategy") tabs[4].classList.add("active");
+    }
+
+    function getOilZone(price) {
+      if (price < 70) return "O1";
+      if (price < 80) return "O2";
+      if (price < 90) return "O3";
+      if (price < 100) return "O4";
+      if (price < 110) return "O5";
+      if (price < 120) return "O6";
+      if (price < 130) return "O7";
+      return "O8";
+    }
+
+    function describeOilZone(zone) {
+      switch (zone) {
+        case "O1": return "Sone O1 – svak olje, energi mindre attraktiv.";
+        case "O2": return "Sone O2 – normal oljepris.";
+        case "O3": return "Sone O3 – moderat sterk olje.";
+        case "O4": return "Sone O4 – sterk, men ikke ekstrem.";
+        case "O5": return "Sone O5 – høy oljepris, økt risiko.";
+        case "O6": return "Sone O6 – veldig høy oljepris.";
+        case "O7": return "Sone O7 – ekstrem oljepris.";
+        case "O8": return "Sone O8 – super-ekstrem oljepris.";
+      }
+    }
+
+    function getRiskLevel() {
+      const zone = getOilZone(state.oilPrice);
+      if (zone === "O1" || zone === "O2" || zone === "O3") return "green";
+      if (zone === "O4" || zone === "O5") return "yellow";
+      if (zone === "O6" || zone === "O7") return "red";
+      return "extreme";
+    }
+
+    function getMainRecommendation() {
+      const zone = getOilZone(state.oilPrice);
+      const diff = state.oilPrice - state.prevOilPrice;
+      if (diff >= 10 && zone === "O5") {
+        return "Oljeprisen har steget minst 10 dollar til et høyt nivå. Vurder å selge 25 % energi og ikke øke mer.";
+      }
+      if (diff >= 10 && (zone === "O6" || zone === "O7" || zone === "O8")) {
+        return "Oljeprisen er ekstrem etter et hopp på minst 10 dollar. Vurder å selge 50–75 % energi og flytte til global indeks.";
+      }
+      if (diff <= -10 && (state.prevOilPrice >= 120)) {
+        return "Oljeprisen har falt minst 10 dollar fra et ekstremt nivå. Ikke kjøp energi med én gang – la ting stabilisere seg.";
+      }
+      if (zone === "O4") {
+        return "Oljeprisen er sterk, men ikke ekstrem. Hold energi stabil, ikke øk aggressivt.";
+      }
+      if (zone === "O2" || zone === "O3") {
+        return "Normal til moderat sterk oljepris. Følg standard strategi og rebalanser etter sektoravvik.";
+      }
+      if (zone === "O1") {
+        return "Lav oljepris. Energi er mindre attraktiv kortsiktig – fokuser mer på global og teknologi.";
+      }
+      return "Følg hovedstrategien og unngå store endringer uten klare signaler.";
+    }
+
+    function buildAlerts() {
+      const alerts = [];
+      const diff = state.oilPrice - state.prevOilPrice;
+      const zone = getOilZone(state.oilPrice);
+
+      if (diff >= 10) {
+        alerts.push({
+          level: "red",
+          title: `Oljepris +${diff.toFixed(0)} USD`,
+          text: `Oljeprisen har steget minst 10 dollar til ${state.oilPrice}. Vurder å redusere energi med 25–50 % avhengig av nivå.`
+        });
+      }
+
+      if (zone === "O6" || zone === "O7" || zone === "O8") {
+        alerts.push({
+          level: "red",
+          title: `Ekstrem oljepris – ${zone}`,
+          text: `Oljeprisen er i ${zone}. Høy risiko for korreksjon. Vurder å selge 50–75 % energi og øke global indeks.`
+        });
+      }
+
+      if (state.sectors.energy > 20) {
+        alerts.push({
+          level: "yellow",
+          title: "Høy energiandel",
+          text: `Energiandel er over 20 %. Vurder å trimme 25 % av energi for å redusere risiko.`
+        });
+      }
+
+      if (alerts.length === 0) {
+        alerts.push({
+          level: "green",
+          title: "Ingen kritiske varsler",
+          text: "Ingen sterke signaler nå. Følg normal strategi og rebalanser rolig ved behov."
+        });
+      }
+
+      return alerts;
+    }
+
+    function render() {
+      // Hjem
+      document.getElementById("oilPriceDisplay").textContent = state.oilPrice;
+      const zone = getOilZone(state.oilPrice);
+      document.getElementById("oilZoneDisplay").textContent = describeOilZone(zone);
+      document.getElementById("portfolioValueDisplay").textContent = state.portfolioValue.toLocaleString("no-NO");
+      document.getElementById("portfolioChangeDisplay").textContent = "+2,5 % siste 30 dager (dummy)";
+
+      // Risiko
+      const risk = getRiskLevel();
+      const circle = document.getElementById("riskCircle");
+      circle.className = "risk-circle";
+      let label = "";
+      if (risk === "green") { circle.classList.add("risk-green"); label = "GRØNN"; }
+      if (risk === "yellow") { circle.classList.add("risk-yellow"); label = "GUL"; }
+      if (risk === "red") { circle.classList.add("risk-red"); label = "RØD"; }
+      if (risk === "extreme") { circle.classList.add("risk-extreme"); label = "EKSTREM"; }
+      document.getElementById("riskLabel").textContent = label;
+      document.getElementById("riskText").textContent = getMainRecommendation();
+
+      // Sektorer
+      document.getElementById("segGlobal").style.width = state.sectors.global + "%";
+      document.getElementById("segTech").style.width = state.sectors.tech + "%";
+      document.getElementById("segEnergy").style.width = state.sectors.energy + "%";
+      document.getElementById("segCash").style.width = state.sectors.cash + "%";
+      document.getElementById("sectorText").textContent =
+        `Global ${state.sectors.global} % · Teknologi ${state.sectors.tech} % · Energi ${state.sectors.energy} % · Kontanter ${state.sectors.cash} %`;
+
+      // Varsler
+      const alerts = buildAlerts();
+      const container = document.getElementById("alertsList");
+      container.innerHTML = "";
+      alerts.forEach(a => {
+        const div = document.createElement("div");
+        div.className = "list-item";
+        const pillClass = a.level === "red" ? "pill-red" : a.level === "yellow" ? "pill-yellow" : "pill-green";
+        div.innerHTML = `
+          <div class="list-title">
+            <span class="pill ${pillClass}">${a.level.toUpperCase()}</span>
+            &nbsp; ${a.title}
+          </div>
+          <div class="list-sub">${a.text}</div>
+        `;
+        container.appendChild(div);
+      });
+
+      // Data-status (for nå: alltid OK)
+      document.getElementById("dataStatus").textContent = "Data: OK (demo)";
+    }
+
+    function updateOilPrice() {
+      const val = parseFloat(document.getElementById("oilPriceInput").value);
+      if (!isNaN(val) && val > 0) {
+        state.prevOilPrice = state.oilPrice;
+        state.oilPrice = val;
+        render();
+      }
+    }
+
+    function updatePortfolioValue() {
+      const val = parseFloat(document.getElementById("portfolioValueInput").value);
+      if (!isNaN(val) && val > 0) {
+        state.portfolioValue = val;
+        render();
+      }
+    }
+
+    function updateCash() {
+      const val = parseFloat(document.getElementById("cashInput").value);
+      if (!isNaN(val) && val >= 0) {
+        state.cash = val;
+        // enkel justering av kontantandel (for demo)
+        const total = state.portfolioValue + state.cash;
+        state.sectors.cash = Math.round((state.cash / total) * 100);
+        const rest = 100 - state.sectors.cash;
+        // fordel resten grovt likt (for demo)
+        state.sectors.global = Math.round(rest * 0.6);
+        state.sectors.tech = Math.round(rest * 0.2);
+        state.sectors.energy = 100 - state.sectors.cash - state.sectors.global - state.sectors.tech;
+        render();
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>
