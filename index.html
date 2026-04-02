@@ -576,6 +576,43 @@
       }
     }
 
+// 🔹 Hent Brent-oljepris fra API
+async function hentOljepris() {
+    const url = "https://api.api-ninjas.com/v1/commodities?name=brent";
+
+    try {
+        const response = await fetch(url, {
+            headers: { "X-Api-Key": "DIN_API_NOKKEL_HER" }
+        });
+
+        if (!response.ok) {
+            throw new Error("Feil ved henting av oljepris");
+        }
+
+        const data = await response.json();
+        const oljepris = data[0].price;
+
+        document.getElementById("oljepris").innerText = oljepris.toFixed(2) + " USD";
+        localStorage.setItem("oljepris", oljepris);
+
+        const tid = new Date().toLocaleTimeString();
+        document.getElementById("sistOppdatert").innerText = "Sist oppdatert: " + tid;
+
+        if (typeof oppdaterRegler === "function") {
+            oppdaterRegler(oljepris);
+        }
+
+    } catch (error) {
+        console.error(error);
+        document.getElementById("oljepris").innerText = "Kunne ikke hente pris";
+    }
+}
+
+// 🔹 Kjør oljepris-henting når appen åpner
+window.onload = function() {
+    hentOljepris();
+};
+   
     render();
   </script>
 </body>
